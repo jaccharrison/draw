@@ -23,7 +23,7 @@ import javafx.embed.swing.SwingFXUtils;
 
 import layer.LayerManager;
 
-public class DrawApp extends Application {
+public static class DrawApp extends Application {
 
 	/* components of main stage */
 	private Stage primaryStage; // main editing window
@@ -44,23 +44,15 @@ public class DrawApp extends Application {
 		public void handle(ActionEvent e) {
 			FileChooser fc = new FileChooser();
 			fc.setTitle("Select Image");
-			fc.getExtensionFilters().addAll( // add ext. filters
-				new ExtensionFilter("Image Files", "*.png", "*.jpg",
-						"*.gif", "*.bmp"),
-				new ExtensionFilter("All Files", "*.*")
-			);
 
 			File imgFile = fc.showOpenDialog(primaryStage); // get file
 
 			try { // attempt to read into new layer 
 				layerManager.newImageLayer(imgFile);
-	/*			= new Image(imgFile.toURI().toURL().toString());
-				iv.setImage(img);
-				.getChildren().add(iv);*/
 			} catch(Exception h) {
 				System.out.println("Image load failed or cancelled");
 			}
-		};
+		}
 	};
 
 	// exportImage: display filechooser and write to new image file
@@ -69,7 +61,7 @@ public class DrawApp extends Application {
 		@Override
 		public void handle(ActionEvent e) {
 			FileChooser fc = new FileChooser();
-			fc.setTitle("Select Output File");
+			fc.setTitle("Select Destination File");
 			File saveFile = fc.showSaveDialog(primaryStage);
 
 			WritableImage wImage = layerManager.getExport();
@@ -80,7 +72,7 @@ public class DrawApp extends Application {
 			} catch (Exception ex) {
 				System.out.println(ex.getMessage());
 			}
-		};
+		}
 	};
 	
 	// close: check if saved and close project
