@@ -2,24 +2,28 @@ package draw;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.*;
 import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.event.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+/* imports for image io */
+import javafx.embed.swing.SwingFXUtils;
 import javax.imageio.ImageIO;
-
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.lang.String;
 import javax.imageio.ImageIO;
+import javafx.scene.SubScene;
 
+import javafx.scene.SnapshotParameters;
 import draw.stage.layer.LayerManager;
+import draw.stage.layer.Layer;
 
 public final class DrawApp extends Application {
 
@@ -27,8 +31,13 @@ public final class DrawApp extends Application {
   private Scene primaryScene;
   private BorderPane root; //organizes main stage
 
-  private MenuBar menuBar;
+  private SubScene editor; //subscene for easel 
+  private StackPane easel; //holds canvases under edit
+
+  private MenuBar menuBar; //control center for application
+
   private LayerManager layerManager;
+  private S
 
   private Boolean saveState; //true if no unsaved changes
 
@@ -41,6 +50,8 @@ public final class DrawApp extends Application {
 
     /* building blocks of window */
     root = new BorderPane();
+    easel = new StackPane();
+    root.setCenter(easel);
     primaryScene = new Scene(root);
     primaryStage.setScene(primaryScene);
 
@@ -80,7 +91,10 @@ public final class DrawApp extends Application {
         if (imgFile != null) {
           try {
             /* convert to Image and send to layerManager */ 
-            layerManager.newLayer(new Image(imgFile.toURI().toURL().toString()));
+            Layer nl = 
+              layerManager.newLayer(new Image(imgFile.toURI().toURL().toString()),
+                  "Test");
+            easel.getChildren().add(nl);
           } catch (Exception ex) {} //TODO: implement catch
         }
       }
@@ -98,9 +112,10 @@ public final class DrawApp extends Application {
 //           new ExtensionFilter("GIF", "*.gif");
 //           new ExtensionFilter("BMP", "*.bmp"));
        File save = fileChooser.showSaveDialog(primaryStage);
+       WritableImage export = easel.snapshot(new SnapshotParameters(), null);
        if (save != null) {
          try {
-           ImageIO.write(SwingFXUtils.fromFXImage(layerManager.getExport(),
+           ImageIO.write(SwingFXUtils.fromFXImage(export,
                  null), "png", save);
          } catch (Exception ex) {} //TODO: impelement catch
        }
@@ -123,6 +138,17 @@ public final class DrawApp extends Application {
     MenuItem cutItem = new MenuItem("Cut");
     MenuItem pItem = new MenuItem("Paste");
     editMenu.getItems().addAll(cpItem, cutItem, pItem); */
+
+    /* 'layer' menu */
+    final Menu layerMenu = new Menu("Layers");
+    MenuItem newLayerItem = new MenuItem("New Layer");
+    newLayerItem.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent e) {
+
+      }
+    });
+    MenuItem rmLayerItem = new MenuItem("Remove Layer");
 
     menuBar = new MenuBar(fileMenu); // compile menubar
   }

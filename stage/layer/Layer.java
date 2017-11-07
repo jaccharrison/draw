@@ -58,7 +58,23 @@ public class Layer extends Canvas {
     }
 
     /* return the number of instantiated layers */
-    public int getLayerCount() {
+    public static final int getLayerCount() {
       return layerCount;
     }
+
+    /* set the number of layers */
+    public static final void setLayerCount(int c) {
+      layerCount = c;
+    }
+
+    /* set the name of the layer */
+    public void setName(String n) {
+      name = n;
+    }
+
+    /* get the name of the layer */
+    public String getName() {
+      return name;
+    }
+
 }
