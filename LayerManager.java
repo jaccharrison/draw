@@ -1,34 +1,31 @@
-package draw.stage.layer;
+package draw;
 
-import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
-import javafx.collections.FXCollections;
+import javafx.collections.*;
 import java.util.Map;
+import java.lang.String;
 import javafx.scene.image.*;
+import javafx.scene.control.ListView;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.canvas.Canvas;
 import java.nio.ByteBuffer;
 
 public final class LayerManager {
 
-  private final Map<String, Layer> layerMap; //layer-name map
+  private Map<String, Canvas> layerMap; //layer-name map
   private ListView<String> listView;
 
-  public final LayerManager() {
+  private int layerCount;
+
+  public LayerManager() {
     /* observable wrapper for map data */
-    final ObservableMap<String, Layer> observableLayerMap =
+    final ObservableMap<String, Canvas> obsLayerMap =
       FXCollections.observableMap(layerMap);
 
     /* create ListView from map keys */
     listView = new ListView<String>();
     listView.setPrefWidth(150);
 
-    /* bind ListView and map */
-    observableLayerMap.addListener(MapChangeListener<String,Layer> change -> {
-      listView.getItems().removeAll(change.getKey());
-      if (change.wasAdded()) {
-        listView.getItems().add(change.getKey());
-      }
-    });
+    layerCount = 0;
   }
 
   /* getListView: return the listView associated with the layerManager */
@@ -37,17 +34,20 @@ public final class LayerManager {
   }
 
   /* addLayer: create blank layer with user-specified dimensions */
-  public final Layer addLayer(double w, double h) {
-    Layer newLayer = new Layer(w, h);
-    String name = "Unnamed " + Layer.getLayerCount(); //gen unique name
-    layerMap.put(name, newLayer);
-    return newLayer;
+  public final Canvas addLayer(double w, double h) throws Exception {
+    Canvas newLayer = new Canvas(w, h);
+    String name = "Unnamed " + layerCount++; //gen unique name
+    if (layerMap.putIfAbsent(name, newLayer) != null) {
+      throw new Exception(name);
+    } else {
+      return newLayer;
+    }
   }
 
   /* addLayer: create blank named layer with user-spec dimensions */
-  public final Layer addLayer(double w, double h, String name) {
-    Layer newLayer = new Layer(w, h);
-    if (layerMap.putIfAbsent(name, newLayer)) {
+  public final Canvas addLayer(double w, double h, String name) throws Exception {
+    Canvas newLayer = new Canvas(w, h);
+    if (layerMap.putIfAbsent(name, newLayer) != null) {
       throw new Exception(name);
     } else {
       return newLayer;
@@ -55,9 +55,9 @@ public final class LayerManager {
   }
 
   /* addLayer: create new layer from image */
-  public final Layer addLayer(Image img, String name) {
-    Layer newLayer = readImage(Image img);
-    if (layerMap.putIfAbsent(name, newLayer)) {
+  public final Canvas addLayer(Image img, String name) throws Exception {
+    Canvas newLayer = readImage(img);
+    if (layerMap.putIfAbsent(name, newLayer) != null) {
       throw new Exception(name);
     } else {
       return newLayer;
@@ -65,8 +65,8 @@ public final class LayerManager {
   }
 
   /* writeImage: returns Layer with pixel data from Image */
-  private final Layer readImage(Image img) {
-    Layer layer = new Layer(img.getWidth(), img.getHeight());
+  private final Canvas readImage(Image img) {
+    Canvas layer = new Canvas(img.getWidth(), img.getHeight());
     PixelReader pixelReader = img.getPixelReader();
     PixelWriter pixelWriter = layer.getGraphicsContext2D().getPixelWriter();
     PixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteRgbInstance();
