@@ -1,5 +1,4 @@
 # Draw: Proof that you can endlessly re-use others' software
-## Full-Featured Branch
+## Full-Featured and stable branch
 
-This branch implements a dockable layer manager and tool manager that expand the capabilities of the simple editor in the
-deliverables branch. Once I get these frameworks down solid, they will replace the simple framework in the deliverables branch.
+This will implement whatever the last-known-good version of the full-featured branch was.
