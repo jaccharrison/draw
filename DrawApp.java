@@ -2,12 +2,18 @@ package draw;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.SubScene;
 import javafx.scene.image.*;
-import javafx.scene.canvas.*;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.scene.layout.*;
-import javafx.event.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.SnapshotParameters;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.scene.control.*;
 import javax.imageio.ImageIO;
 import javafx.embed.swing.SwingFXUtils;
@@ -15,7 +21,6 @@ import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.lang.String;
-import java.nio.ByteBuffer;
 
 public final class DrawApp extends Application {
 
@@ -24,8 +29,10 @@ public final class DrawApp extends Application {
   private BorderPane root; //organizes main stage
 
   private MenuBar menuBar;
+  private SubScene editor;
 
   private Canvas canvas;
+  private Pane canvasPane;
   private GraphicsContext gc;
 
   /* start: build UI */
@@ -45,8 +52,8 @@ public final class DrawApp extends Application {
 
     /* add canvas */
     canvas = new Canvas(400.0, 400.0);
+    canvasPane = new Pane(canvas);
     gc = canvas.getGraphicsContext2D();
-    root.setCenter(canvas);
 
     drawStage.sizeToScene();
     drawStage.show(); // show window
@@ -56,7 +63,6 @@ public final class DrawApp extends Application {
   private final void buildMenuBar() {
 
     final Menu fileMenu = new Menu("File");
-    final Menu drawMenu = new Menu("Draw");
 
     // File menu items
     MenuItem openItem = new MenuItem("Open Image");
@@ -72,11 +78,12 @@ public final class DrawApp extends Application {
         if (imgFile != null) {
           try {
             Image img = new Image(imgFile.toURI().toURL().toString());
-            canvas.setHeight(img.getHeight());
-            canvas.setWidth(img.getWidth());
-            PixelReader pixelReader = img.getPixelReader();
-            PixelWriter pixelWriter = gc.getPixelWriter();
-            PixelFormat<ByteBuffer> pixelFormat = PixelFormat.getByteRgbInstance();
+            double imgWidth = img.getWidth();
+            double imgHeight = img.getHeight();
+            editor = new SubScene(canvasPane, imgWidth, imgHeight);
+            root.setCenter(editor);
+            canvas.setWidth(imgWidth);
+            canvas.setHeight(imgHeight);
             gc.drawImage(img, 0.0, 0.0);
           } catch (Exception ex) {}
         }
@@ -93,7 +100,7 @@ public final class DrawApp extends Application {
         File save = fileChooser.showSaveDialog(drawStage);
         if (save != null) {
           try {
-            ImageIO.write(SwingFXUtils.fromFXImage(drawScene.snapshot(null),
+            ImageIO.write(SwingFXUtils.fromFXImage(editor.snapshot(new SnapshotParameters(), null),
                   null), "png", save);
           } catch (Exception ex) {} //TODO: impelement catch
         }
