@@ -1,4 +1,4 @@
-# Draw: Proof that you can endlessly re-use others' software.
+# Draw: Paint clone for OO design course
 ## 'Deliverables' Branch
 This is a simple JavaFX program that I'm making for an independent study in an object-oriented programming course. Trouble is,
 I've been so swamped with my other 17 credit hours that this has largely taken a back burner, especially since its an
