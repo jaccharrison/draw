@@ -2,140 +2,133 @@ package draw;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.stage.*;
-import javafx.scene.layout.*;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.*;
+import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.scene.layout.BorderPane;
 import javafx.event.*;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
-import javafx.scene.canvas.*;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
+import javax.imageio.ImageIO;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.lang.String;
 import javax.imageio.ImageIO;
-import javafx.embed.swing.SwingFXUtils;
 
-import layer.LayerManager;
+import draw.stage.layer.LayerManager;
 
-public static class DrawApp extends Application {
+public final class DrawApp extends Application {
 
-	/* components of main stage */
-	private Stage primaryStage; // main editing window
-	private Scene primaryScene;
-	private BorderPane root; // organizes main stage
-	private MenuBar menuBar;
+  private Stage primaryStage; //main window
+  private Scene primaryScene;
+  private BorderPane root; //organizes main stage
 
-	private LayerManager layerManager;
+  private MenuBar menuBar;
+  private LayerManager layerManager;
 
-	private Boolean saveState; // false if changes have occurred since save
+  private Boolean saveState; //true if no unsaved changes
 
-	/* EVENT HANDLERS FOR MENUS */
+  /* start: build interface */
+  public final void start(Stage primaryStage) {
 
-	// openImage: displays filechooser and creates a new layer form image
-	private EventHandler openImage = new EventHandler<ActionEvent>() {
+    primaryStage.setTitle("Draw");
+    primaryStage.setMinHeight(100.0);
+    primaryStage.setMinWidth(150.0);
 
-		@Override
-		public void handle(ActionEvent e) {
-			FileChooser fc = new FileChooser();
-			fc.setTitle("Select Image");
+    /* building blocks of window */
+    root = new BorderPane();
+    primaryScene = new Scene(root);
+    primaryStage.setScene(primaryScene);
 
-			File imgFile = fc.showOpenDialog(primaryStage); // get file
+    /* add menu */
+    buildMenu();
+    root.setTop(menuBar); //add menu to top of scene
 
-			try { // attempt to read into new layer 
-				layerManager.newImageLayer(imgFile);
-			} catch(Exception h) {
-				System.out.println("Image load failed or cancelled");
-			}
-		}
-	};
+    /* instantiate layerManager */
+    layerManager = new LayerManager(primaryStage);
 
-	// exportImage: display filechooser and write to new image file
-	private EventHandler exportImage = new EventHandler<ActionEvent>() {
+    primaryStage.show(); // show window
+  }
 
-		@Override
-		public void handle(ActionEvent e) {
-			FileChooser fc = new FileChooser();
-			fc.setTitle("Select Destination File");
-			File saveFile = fc.showSaveDialog(primaryStage);
+  /* buildMenu: build MenuBar with EventHandlers */
+  private final void buildMenu() {
 
-			WritableImage wImage = layerManager.getExport();
+    /* 'file' menu */
+    final Menu fileMenu = new Menu("File"); //menu entry
+    MenuItem newItem = new MenuItem("New Project"); //File > New Project
+    newItem.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent e) {
+      }
+    });
+    MenuItem openItem = new MenuItem("Open Image"); //File > Open Image
+    openItem.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      /* select and open image from filesystem as project layer */
+      public void handle(ActionEvent e) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Image");
+        fileChooser.getExtensionFilters().addAll(
+            new ExtensionFilter("Image Files", "*.png", "*.jpg", "*.gif"),
+            new ExtensionFilter("All Files", "*.*"));
+        /* get File to be opened */
+        File imgFile = fileChooser.showOpenDialog(primaryStage);
+        if (imgFile != null) {
+          try {
+            /* convert to Image and send to layerManager */ 
+            layerManager.newLayer(new Image(imgFile.toURI().toURL().toString()));
+          } catch (Exception ex) {} //TODO: implement catch
+        }
+      }
+    });
+    MenuItem exportItem = new MenuItem("Export"); //File > Export...
+    exportItem.setOnAction(new EventHandler<ActionEvent>() {
+     @Override
+     public void handle(ActionEvent e) {
+       FileChooser fileChooser = new FileChooser();
+       fileChooser.setTitle("Save Image");
+       fileChooser.getExtensionFilters().addAll(
+           // TODO: implement different filetype exports
+//           new ExtensionFilter("JPEG", "*.jpg");
+           new ExtensionFilter("PNG", "*.png"));
+//           new ExtensionFilter("GIF", "*.gif");
+//           new ExtensionFilter("BMP", "*.bmp"));
+       File save = fileChooser.showSaveDialog(primaryStage);
+       if (save != null) {
+         try {
+           ImageIO.write(SwingFXUtils.fromFXImage(layerManager.getExport(),
+                 null), "png", save);
+         } catch (Exception ex) {} //TODO: impelement catch
+       }
+     }
+    });
+    MenuItem closeItem = new MenuItem("Quit"); //File > Quit
+    closeItem.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent e) {
+        if (saveState)
+          primaryStage.close();
+      }
+    });
+    /* add items to file menu */
+    fileMenu.getItems().addAll(newItem, openItem, exportItem, closeItem);
 
-			try {
-				ImageIO.write(SwingFXUtils.fromFXImage(wImage, null),
-						"png", saveFile);
-			} catch (Exception ex) {
-				System.out.println(ex.getMessage());
-			}
-		}
-	};
-	
-	// close: check if saved and close project
-	private EventHandler close = new EventHandler<ActionEvent>() {
+    /* 'edit' menu */
+/*    final Menu editMenu = new Menu("Edit");
+    MenuItem cpItem = new MenuItem("Copy");
+    MenuItem cutItem = new MenuItem("Cut");
+    MenuItem pItem = new MenuItem("Paste");
+    editMenu.getItems().addAll(cpItem, cutItem, pItem); */
 
-		@Override
-		public void handle(ActionEvent e) {
-			if (!saveState) {
-				Popup pop = new Popup();
-				Text t = new Text();
-				t.setText("There are unsaved changes.\nAre you sure you want to quit?");
-				t.setTextAlignment(TextAlignment.CENTER);	
-				StackPane text = new StackPane();
-				text.getChildren().add(t);
-				Scene scene = new Scene(text);	
-				pop.show(primaryStage);
-			}
-			primaryStage.close();
-		}
-	};
+    menuBar = new MenuBar(fileMenu); // compile menubar
+  }
 
-	/* start: start the application. build windows */
-	public void start(Stage primaryStage) {
-
-		primaryStage.setTitle("Draw");
-		primaryStage.setMinHeight(100.0);
-		primaryStage.setMinWidth(100.0);
-
-		/* CREATE MENUBAR */ 
-
-		/* 'file' menu */
-		final Menu fileMenu = new Menu("File");
-		MenuItem newItem = new MenuItem("Create Project");
-		MenuItem openItem = new MenuItem("Open Image");
-		openItem.setOnAction(openImage); // set open action
-		MenuItem exportItem = new MenuItem("Export Image");
-		exportItem.setOnAction(exportImage); // set export action
-		MenuItem closeItem = new MenuItem("Quit");
-		fileMenu.getItems().addAll(newItem, openItem, exportItem, closeItem);
-
-		/* 'edit' menu */
-		final Menu editMenu = new Menu("Edit");
-		MenuItem cpItem = new MenuItem("Copy");
-		MenuItem cutItem = new MenuItem("Cut");
-		MenuItem pasteItem = new MenuItem("Paste");
-		editMenu.getItems().addAll(cpItem, cutItem, pasteItem);
-
-		menuBar = new MenuBar(fileMenu, editMenu); // compile menubar
-
-		/* CREATE EDITING CANVAS */
-
-		root.setTop(menuBar);
-		primaryScene = new Scene(root);
-		primaryStage.setScene(primaryScene);
-		primaryStage.show();
-	}
-
-	/* Main: not used. ensures compatibilty with swing apps */
-	public static void main(String [] args) {
-		launch(args);
-	}
+  /* Main: not used. ensures compatibilty with swing apps */
+  public static void main(String [] args) {
+    launch(args);
+  }
 }
-
-
-
-
