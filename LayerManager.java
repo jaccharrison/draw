@@ -2,6 +2,7 @@ package draw;
 
 import javafx.collections.*;
 import java.util.Map;
+import java.util.HashMap;
 import java.lang.String;
 import javafx.scene.image.*;
 import javafx.scene.control.ListView;
@@ -17,6 +18,7 @@ public final class LayerManager {
   private int layerCount;
 
   public LayerManager() {
+    layerMap = new HashMap<String, Canvas>();
     /* observable wrapper for map data */
     final ObservableMap<String, Canvas> obsLayerMap =
       FXCollections.observableMap(layerMap);
