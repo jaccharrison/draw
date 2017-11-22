@@ -125,7 +125,14 @@ public final class DrawApp extends Application {
       @Override
       public void handle(ActionEvent e) { editor.setRectTool(); }
     });
-    toolMenu.getItems().addAll(lineItem); //add items to tool menu
+    MenuItem pencilItem = new MenuItem("Pencil");
+    pencilItem.setOnAction(new EventHandler<ActionEvent>() {
+      @Override
+      public void handle(ActionEvent e) { editor.setPencilTool(); }
+    });
+
+    //add items to tool menu
+    toolMenu.getItems().addAll(lineItem, rectItem, pencilItem);
 
     menuBar = new MenuBar(fileMenu, toolMenu); // compile menubar
   }
