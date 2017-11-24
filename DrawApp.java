@@ -6,9 +6,9 @@ import javafx.scene.Scene;
 import javafx.scene.SubScene;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.event.EventHandler;
 import javafx.event.ActionEvent;
-import javafx.scene.input.MouseEvent;
 
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -40,9 +40,9 @@ public final class DrawApp extends Application {
 
   private final MenuBar menuBar = new MenuBar();
 
-  private Canvas canvas = new Canvas(600.0, 800.0); // canvas under edit
+  private Canvas canvas; // canvas under edit
   private GraphicsContext gc; // graphics context for canvas under edit
-  private final Pane editor = new Pane(canvas); // holds canvas and shapes
+  private final Pane editor = new Pane(); // holds canvas and shapes
 
   private final ToolManager toolManager = new ToolManager(editor);
 
@@ -57,6 +57,7 @@ public final class DrawApp extends Application {
     drawStage.setMinHeight(100.0);
     drawStage.setMinWidth(150.0);
 
+    newProject(400.0f, 500.0f); // make new canvas
     root.setCenter(editor);
 
     editor.setBorder(new Border(new BorderStroke(
@@ -73,7 +74,7 @@ public final class DrawApp extends Application {
     final MenuItem newProjectItem = new MenuItem("New Project");
     newProjectItem.setOnAction(new EventHandler<ActionEvent>() {
       @Override
-      public void handle(ActionEvent e) { newProject(); }
+      public void handle(ActionEvent e) { newProject(400.0f, 500.0f); }
     });
     final MenuItem openItem = new MenuItem("Open Image");
     openItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -87,8 +88,7 @@ public final class DrawApp extends Application {
         if (imgFile != null) {
           try {
             Image img = new Image(imgFile.toURI().toURL().toString());
-            canvas = new Canvas(img.getWidth(), img.getHeight());
-            gc = canvas.getGraphicsContext2D();
+            newProject((float)img.getWidth(), (float)img.getHeight());
             gc.drawImage(img, 0.0, 0.0);
           } catch (Exception ex) {} //TODO: implement catch
         }
@@ -250,8 +250,12 @@ public final class DrawApp extends Application {
     }
   }
 
-  private void newProject() {
-    canvas = new Canvas(600, 800);
+  private void newProject(float x, float y) {
+    editor.getChildren().remove(canvas); // remove old canvas
+    canvas = new Canvas(x, y); // new canvas with specified dimensions
+    gc = canvas.getGraphicsContext2D();
+    editor.setPrefSize(x, y); // resize scene
+    editor.getChildren().add(canvas);
     drawStage.sizeToScene();
   }
 
