@@ -4,12 +4,15 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.*;
 import javafx.scene.canvas.*;
+
 import javafx.stage.*;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.SnapshotParameters;
+
 import javafx.event.*;
+
 import javafx.scene.control.*;
 import javax.imageio.ImageIO;
 import javafx.embed.swing.SwingFXUtils;
@@ -72,6 +75,7 @@ public final class DrawApp extends Application {
     final Menu fileMenu = new Menu("File");
     final Menu toolMenu = new Menu("Tools");
 
+
     // File menu items
     MenuItem openItem = new MenuItem("Open Image");
     openItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -88,13 +92,8 @@ public final class DrawApp extends Application {
             Image img = new Image(imgFile.toURI().toURL().toString());
             double imgWidth = img.getWidth();
             double imgHeight = img.getHeight();
-            canvas.setWidth(imgWidth);
-            canvas.setHeight(imgHeight);
-            gc.drawImage(img, 0.0, 0.0);
-          } catch (Exception ex) {}
-        }
-      }
-    });
+            editor = new SubScene(canvasPane, imgWidth, imgHeight);
+            root.setCenter(editor);
 
     MenuItem exportItem = new MenuItem("Export");
     exportItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -133,6 +132,7 @@ public final class DrawApp extends Application {
 
     //add items to tool menu
     toolMenu.getItems().addAll(lineItem, rectItem, pencilItem);
+
 
     menuBar = new MenuBar(fileMenu, toolMenu); // compile menubar
   }
